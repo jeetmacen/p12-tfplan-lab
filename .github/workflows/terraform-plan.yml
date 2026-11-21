@@ -1,0 +1,25 @@
+name: Terraform plan
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.17.2
+          terraform_wrapper: false
+      - run: terraform init -input=false
+      - run: terraform validate
+      - run: terraform plan -input=false -out=demo.tfplan
+      - run: terraform show -no-color demo.tfplan > plan.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: plan-${{ github.run_id }}
+          path: |
+            demo.tfplan
+            plan.txt
+          if-no-files-found: error
+          retention-days: 3
